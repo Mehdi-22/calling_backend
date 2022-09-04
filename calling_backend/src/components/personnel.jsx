@@ -14,34 +14,36 @@ function Personnel() {
   const [pageSize, setPageSize] = useState(4);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  let [totalCount, setTotalCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
   const [sortColumn, setSortColumn] = useState({
     path: "firstName",
     order: "asc",
   });
 
-  useEffect(() => {
-    async function fetchData() {
-      const { data: object } = await getPersonnel();
-      const personnel = object._embedded.personalList;
-      setPersonnel(personnel);
-    }
-    fetchData();
-  });
+  const fetchData = async () => {
+    const { data: object } = await getPersonnel();
+    const personnel = object._embedded.personalList;
+    setTotalCount(personnel.length);
+    setPersonnel(personnel);
+  };
 
-  const getPageData = () => {
+  useEffect(() => {
+    fetchData();
+    console.log(personnel);
+  }, []);
+
+  let getPageData = () => {
     let filtered = personnel;
+    //console.log(personnel);
     if (searchQuery)
       filtered = personnel.filter((m) =>
-        m._id.toLowerCase().startsWith(searchQuery.toLowerCase())
+        m.nom.toLowerCase().startsWith(searchQuery.toLowerCase())
       );
-
     const sorted = _.orderBy(filtered, [sortColumn.path], [sortColumn.order]);
-
-    personnel = paginate(sorted, currentPage, pageSize);
+    // console.log(filtered);
+    // console.log(sorted);
+    setPersonnel(paginate(sorted, currentPage, pageSize));
     setTotalCount(filtered.length);
-
-    setPersonnel(personnel);
   };
 
   const handleDelete = async (element) => {
@@ -58,11 +60,13 @@ function Personnel() {
   };
 
   const handlePageChange = (page) => {
+    getPageData();
     setCurrentPage(page);
   };
 
   const handleSort = (sortColumn) => {
     setSortColumn(sortColumn);
+    getPageData();
   };
 
   return (
