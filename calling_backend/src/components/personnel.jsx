@@ -23,25 +23,22 @@ function Personnel() {
   const fetchData = async () => {
     const { data: object } = await getPersonnel();
     const personnel = object._embedded.personalList;
-    setTotalCount(personnel.length);
     setPersonnel(personnel);
+    getPageData(personnel);
   };
 
   useEffect(() => {
     fetchData();
-    console.log(personnel);
   }, []);
 
-  let getPageData = () => {
+  const getPageData = (personnel) => {
     let filtered = personnel;
-    //console.log(personnel);
     if (searchQuery)
       filtered = personnel.filter((m) =>
-        m.nom.toLowerCase().startsWith(searchQuery.toLowerCase())
+        m._id.toLowerCase().startsWith(searchQuery.toLowerCase())
       );
+
     const sorted = _.orderBy(filtered, [sortColumn.path], [sortColumn.order]);
-    // console.log(filtered);
-    // console.log(sorted);
     setPersonnel(paginate(sorted, currentPage, pageSize));
     setTotalCount(filtered.length);
   };
@@ -60,17 +57,25 @@ function Personnel() {
   };
 
   const handlePageChange = (page) => {
-    getPageData();
     setCurrentPage(page);
+    getPageData(personnel);
   };
+
+  useEffect(() => {
+    fetchData();
+  }, [currentPage]);
 
   const handleSort = (sortColumn) => {
     setSortColumn(sortColumn);
-    getPageData();
+    getPageData(personnel);
   };
 
+  useEffect(() => {
+    fetchData();
+  }, [sortColumn]);
+
   return (
-    <React.StrictMode>
+    <div>
       <div className="row">
         <div className="col-2"></div>
 
@@ -91,7 +96,7 @@ function Personnel() {
           />
         </div>
       </div>
-    </React.StrictMode>
+    </div>
   );
 }
 
